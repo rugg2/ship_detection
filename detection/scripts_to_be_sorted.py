@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 
 # --------------- show random image ---------------
 def show_random_image(
-    ship=True, df_csv, input_dir="../../../datasets/satellite_ships"
+    df_metadata_from_csv, ship=True, input_dir="../../../datasets/satellite_ships"
 ):
     if ship:
-        mask = df_csv["EncodedPixels"].notnull()
+        mask = df_metadata_from_csv["EncodedPixels"].notnull()
     else:
-        mask = df_csv["EncodedPixels"].isnull()
+        mask = df_metadata_from_csv["EncodedPixels"].isnull()
 
-    segmentation = df_csv[mask].sample().iloc[0]
+    segmentation = df_metadata_from_csv[mask].sample().iloc[0]
 
     # note: to use plt.imread, need to install not only matplotlib but also "Pillow"
     image = plt.imread(input_dir + "/train_v2/" + segmentation["ImageId"])
