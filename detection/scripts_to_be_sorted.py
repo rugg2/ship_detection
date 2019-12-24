@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # --------------- show random image ---------------
 def show_random_image(
-    ship=True, df_csv=df_csv, input_dir="../../../datasets/satellite_ships"
+    ship=True, df_csv, input_dir="../../../datasets/satellite_ships"
 ):
     if ship:
         mask = df_csv["EncodedPixels"].notnull()
