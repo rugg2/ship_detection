@@ -1,6 +1,26 @@
 import numpy as np
 import pandas as pd
 
+import matplotlib.pyplot as plt
+
+# --------------- show random image ---------------
+def show_random_image(
+    ship=True, df_csv=df_csv, input_dir="../../../datasets/satellite_ships"
+):
+    if ship:
+        mask = df_csv["EncodedPixels"].notnull()
+    else:
+        mask = df_csv["EncodedPixels"].isnull()
+
+    segmentation = df_csv[mask].sample().iloc[0]
+
+    # note: to use plt.imread, need to install not only matplotlib but also "Pillow"
+    image = plt.imread(input_dir + "/train_v2/" + segmentation["ImageId"])
+
+    fig = plt.figure(figsize=(16, 8))
+    plt.imshow(image)
+
+
 # --------------- decode box position -----------------
 def rle_to_pixels(rle_code):
     """

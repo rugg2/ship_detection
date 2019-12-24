@@ -9,6 +9,7 @@ Steps taken:
     - airbus kaggle set (selected for first iteration)
         - https://www.kaggle.com/c/airbus-ship-detection/data
         - to download locally, make sure your connection is stable (29 GB)
+            - get API key through your kaggle profile (free), and either save file or enter name and key as environmental variable
             - nohup kaggle competitions download -c airbus-ship-detection & disown %1
 - **simple EDA:**
     - 200k+ images of size 768 x 768 x 3
