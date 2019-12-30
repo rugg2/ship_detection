@@ -15,9 +15,10 @@ def show_random_image(
     segmentation = df_metadata_from_csv[mask].sample().iloc[0]
 
     # note: to use plt.imread, need to install not only matplotlib but also "Pillow"
+    print(segmentation["ImageId"])
     image = plt.imread(input_dir + "/train_v2/" + segmentation["ImageId"])
 
-    fig = plt.figure(figsize=(16, 8))
+    fig = plt.figure(figsize=(20, 10))
     plt.imshow(image)
 
 
