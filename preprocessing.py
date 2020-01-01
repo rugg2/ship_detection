@@ -47,7 +47,7 @@ def process_text_df(metadata_filepath):
 
 
 def image_batch_generators(
-    train_df, dev_df, target_pixels=256, input_dir="../../datasets/satellite_ships"
+    train_df, dev_df, target_size=(256, 256), input_dir="../../datasets/satellite_ships"
 ):
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
         rescale=1.0 / 255,
@@ -64,7 +64,7 @@ def image_batch_generators(
         directory=input_dir + "/train_v2/",
         x_col="ImageId",
         y_col="has_vessel_str",
-        target_size=(target_pixels, target_pixels),
+        target_size=target_size,
         batch_size=40,
         class_mode="binary",
     )
@@ -74,7 +74,7 @@ def image_batch_generators(
         directory=input_dir + "/train_v2/",
         x_col="ImageId",
         y_col="has_vessel_str",
-        target_size=(256, 256),
+        target_size=target_size,
         batch_size=40,
         class_mode="binary",
     )
@@ -82,7 +82,9 @@ def image_batch_generators(
     return train_generator, validation_generator
 
 
-def preprocessing_main(input_dir="../../datasets/satellite_ships"):
+def preprocessing_main(
+    target_size=(256, 256), input_dir="../../datasets/satellite_ships"
+):
     """
     Call the other subroutines in this file.
     --> likely targetted to vessel detection, not directly usable for localization (tbc)
@@ -94,7 +96,7 @@ def preprocessing_main(input_dir="../../datasets/satellite_ships"):
     train_df, dev_df = train_test_split(df_metadata, test_size=0.1, random_state=42)
 
     train_generator, validation_generator = image_batch_generators(
-        train_df, dev_df, input_dir=input_dir
+        train_df, dev_df, target_size=target_size, input_dir=input_dir
     )
 
     return train_generator, validation_generator
