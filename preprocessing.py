@@ -5,9 +5,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 
-def process_text_df(
-    metadata_filepath="../input/airbus-ship-detection/train_ship_segmentations_v2.csv"
-):
+def process_text_df(metadata_filepath):
     """
     Extract labels from metadata csv file 
     """
@@ -49,7 +47,7 @@ def process_text_df(
 
 
 def image_batch_generators(
-    train_df, dev_df, input_dir="../../../datasets/satellite_ships"
+    train_df, dev_df, target_pixels=256, input_dir="../../datasets/satellite_ships"
 ):
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
         rescale=1.0 / 255,
@@ -66,7 +64,7 @@ def image_batch_generators(
         directory=input_dir + "/train_v2/",
         x_col="ImageId",
         y_col="has_vessel_str",
-        target_size=(256, 256),
+        target_size=(target_pixels, target_pixels),
         batch_size=40,
         class_mode="binary",
     )
@@ -84,7 +82,7 @@ def image_batch_generators(
     return train_generator, validation_generator
 
 
-def preprocessing_main(input_dir="../../../datasets/satellite_ships"):
+def preprocessing_main(input_dir="../../datasets/satellite_ships"):
     """
     Call the other subroutines in this file.
     --> likely targetted to vessel detection, not directly usable for localization (tbc)
