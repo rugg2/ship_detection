@@ -11,9 +11,11 @@ Steps taken:
         - to download locally, make sure your connection is stable (29 GB)
             - get API key through your kaggle profile (free), and either save file or enter name and key as environmental variable
             - nohup kaggle competitions download -c airbus-ship-detection & disown %1
+    - free sources (unverified quality or recency): 
+        https://eos.com/blog/7-top-free-satellite-imagery-sources-in-2019/
 - **simple EDA:**
     - 200k+ images of size 768 x 768 x 3
-    - 77% of images have no vessel
+    - 78% of images have no vessel
     - some images have up to 15 vessels
     - Ships within and across images differ in size, and are located in open sea, at docks, marinas, etc.
 - **modelling broken down into two steps**, with subfolders in the repo

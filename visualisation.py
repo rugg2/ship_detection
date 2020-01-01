@@ -22,43 +22,41 @@ def show_random_image(
     plt.imshow(image)
 
 
-# --------------- decode box position -----------------
-def rle_to_pixels(rle_code):
-    """
-    RLE: Run-Length Encoding
-    Transforms a RLE code string into a list of pixels of a (768, 768) canvas.
-    
-    Source: https://www.kaggle.com/julian3833/2-understanding-and-plotting-rle-bounding-boxes
-    """
-    rle_code = [int(i) for i in rle_code.split()]
-    pixels = [
-        (pixel_position % 768, pixel_position // 768)
-        for start, length in list(zip(rle_code[0:-1:2], rle_code[1::2]))
-        for pixel_position in range(start, start + length)
-    ]
-    return pixels
+def show_model_predictions(validation_generator, model):
+    evaluation_batch = next(validation_generator)
 
+    predicted_vessel = model.predict_classes(evaluation_batch)
 
-def process_text_df():
-    # load
-    df_csv = pd.read_csv(
-        "../input/airbus-ship-detection/train_ship_segmentations_v2.csv"
+    print(
+        "accuracy on selected batch: ", (evaluation_batch[1] == predicted_vessel).mean()
     )
 
-    # does image have vessel
-    df_csv["has_vessel"] = df_csv["EncodedPixels"].notnull()
+    # show batch images with their label
+    i = 0
+    plt.figure(figsize=(15, 40))
+    for img, label in zip(*evaluation_batch):
+        caption = (
+            "prediction:"
+            + str(bool(predicted_vessel[i]))
+            + ", actual:"
+            + str(bool(label))
+        )
+        i += 1
+        plt.subplot(7, 3, i)
+        plt.title(caption)
+        plt.imshow(img)
 
-    # where is ship on image
+        if i > 20:
+            break
 
-    return df_csv
 
-
+# ----------- exploratory data analysis -----------
 # images with multiple vessels have multiple rows
 # most images have no vessels - 77% in fact
 # some images have up to 15 vessels
 # df_csv.groupby('ImageId')['has_vessel'].sum().describe([0.5, 0.77, 0.78, 0.9, 0.95, 0.98, 0.99])
 
-# ----- example visualisation -----
+# ----------- example visualisation -----------
 # canvas = np.zeros((768, 768))
 # pixels = rle_to_pixels(np.random.choice(df_csv.loc[mask_hasvessel, 'EncodedPixels']))
 # canvas[tuple(zip(*pixels))] = 1
