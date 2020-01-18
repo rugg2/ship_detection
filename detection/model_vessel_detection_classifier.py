@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tensorflow as tf
-from tensorflow import keras
+
+# from tensorflow import keras
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,25 +11,25 @@ print(tf.__version__)
 
 
 def define_model_supersimple_convnet(IMG_HEIGHT=256, IMG_WIDTH=256):
-    model = keras.Sequential(
+    model = tf.keras.Sequential(
         [
-            keras.layers.Conv2D(
+            tf.keras.layers.Conv2D(
                 16,
                 3,
                 padding="same",
                 activation="relu",
                 input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
             ),
-            keras.layers.MaxPooling2D(),
-            keras.layers.Conv2D(32, 3, padding="same", activation="relu"),
-            keras.layers.MaxPooling2D(),
-            keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
-            keras.layers.MaxPooling2D(),
-            keras.layers.Dropout(0.2),
-            keras.layers.Flatten(),
-            keras.layers.Dense(128, activation="relu"),
-            keras.layers.Dense(2, activation="softmax")
-            #     keras.layers.Dense(1, activation = 'sigmoid')
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu"),
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(2, activation="softmax")
+            #     tf.keras.layers.Dense(1, activation = 'sigmoid')
         ]
     )
 
@@ -73,6 +74,7 @@ def elements_for_model_training(model, train_generator, validation_generator):
 
     # ------- tensorboard callback -------
     import datetime
+    import os
 
     log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(
@@ -90,12 +92,13 @@ def elements_for_model_training(model, train_generator, validation_generator):
     # step_size is the number of iteration per half cycle
     # authors suggest setting step_size to 2-8x the number of training iterations per epoch
     cyclic_learning_rate = CyclicLR(
-        base_lr=1e-5, max_lr=1e-2, step_size=5000, mode="triangular2"
+        base_lr=5e-5, max_lr=1e-2, step_size=5000, mode="triangular2"
     )
 
     # ------- actual_training -------
     # model.fit(next(train_data_gen)[0], next(train_data_gen)[1], epochs=20)
 
+    # fit_generator will be deprecated: use fit instead -> works faster with Tensorflow 2.0
     history = model.fit_generator(
         train_generator,
         #         train_example_gen,
