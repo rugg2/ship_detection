@@ -1,7 +1,7 @@
 # ship_detection
 Ship detection and localization from satellite images.
 
-<img src="https://rugg2.github.io/project_files/deepneuralnetworks_image/class_activation_mapping.PNG" alt="Class activation mapping on vessel detection classifier ConvNet" height="600">
+<img src="https://rugg2.github.io/project_files/deepneuralnetworks_image/class_activation_mapping.PNG" alt="Class activation mapping on vessel detection classifier ConvNet" height="500">
 
 Steps taken:
 - **find data sets:** 
