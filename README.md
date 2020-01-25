@@ -1,6 +1,11 @@
 # ship_detection
 Ship detection and localization from satellite images.
 
+Blog posts:
+- <a href='https://medium.com/@romain.guion/satellite-images-object-detection-part-1-95-accuracy-in-a-few-lines-of-code-8ee4acd72809'>Ship detection - Part 1</a>: Ship detection, i.e. binary prediction of whether there is at least 1 ship, or not. Part 1 is a simple solution showing great results in a few lines of code
+- <a href='https://medium.com/@romain.guion/satellite-images-object-detection-part-2-the-beauty-the-beast-f92ff27b696a'>Ship detection - Part 2</a>: ship detection with transfer learning and  decision interpretability through GAP/GMP's implicit localisation properties
+- Ship localisation - Part 3: identify where ship are within the image, and highlight with a bounding box
+
 <img src="https://rugg2.github.io/project_files/deepneuralnetworks_image/class_activation_mapping.PNG" alt="Class activation mapping on vessel detection classifier ConvNet" height="475">
 
 Steps taken:
