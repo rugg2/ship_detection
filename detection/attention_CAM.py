@@ -2,18 +2,18 @@
 # inspired from paper https://arxiv.org/pdf/1512.04150.pdf
 
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 
 def extract_relevant_layers(model, image_batch, global_pooling_layer_nbr=1):
-    # --------- CAM LOGIC ---------
-    # >>>> define a new variable for the layer just before the Global Pooling layer (GAP/GMP)
+    # define a new variable for the layer just before the Global Pooling layer (GAP/GMP)
     # in our example that's the input to layer 1, or the output of layer 0
     model_pre_gp_layer = tf.keras.models.Model(
         inputs=model.input, outputs=model.layers[global_pooling_layer_nbr].input
     )
 
     # get an example data, and make a prediction on it
-    pre_gp_activation_example = model_pre_gp_layer.predict(batch_test[0])
+    pre_gp_activation_example = model_pre_gp_layer.predict(image_batch[0])
 
     # classification weights, last layer (here we are working on binary classification - slight variation for multiclass)
     classification_weights = model.layers[-1].weights[0].numpy()
@@ -51,13 +51,13 @@ The quantity we show on the heatmap is
 
 # --------- INPUT DATA ---------
 # get model (here we had pretrained it)
-# model_loaded = tf.keras.models.load_model(
-#     "../input/vessel-detection-transferlearning-xception/model_xception_gmp_cycling_20200112_7_40.h5"
-# )
+model_loaded = tf.keras.models.load_model(
+    "../input/vessel-detection-transferlearning-xception/model_xception_gmp_cycling_20200112_7_40.h5"
+)
 
 # get a batch of pictures
 # here assuming the validation_generator is running, or through another mean
-# batch_test = next(validation_generator)
+batch_test = next(validation_generator)
 
 # --------- PROCESS ---------
 # prediction on relevant layers for that batch
