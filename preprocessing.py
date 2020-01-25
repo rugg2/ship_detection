@@ -35,7 +35,7 @@ def process_text_df(metadata_filepath):
         "e44dffe88.jpg",
         "ef87bad36.jpg",
         "f083256d8.jpg",
-    ]  # corrupted image
+    ]  # corrupted images
 
     mask_not_corrupted = ~(df_csv["ImageId"].isin(exclude_list))
 
@@ -119,3 +119,47 @@ def rle_to_pixels(rle_code):
         for pixel_position in range(start, start + length)
     ]
     return pixels
+
+
+def select_images_with_vessels_and_generate_pixels_mask(metadata_filepath):
+    """
+    This method associates images with pixel masks of where the ship is.
+
+    Context: this prepares the second part of training: 
+    assuming there is a vessel on the image, and predicting where the vessel is.
+    """
+
+    # load
+    df_csv = pd.read_csv(metadata_filepath)
+
+    # does image have vessel
+    mask_has_vessel = df_csv["EncodedPixels"].notnull()
+
+    # remove corrupted images. Source: https://www.kaggle.com/iafoss/fine-tuning-resnet34-on-ship-detection
+    exclude_list = [
+        "6384c3e78.jpg",
+        "13703f040.jpg",
+        "14715c06d.jpg",
+        "33e0ff2d5.jpg",
+        "4d4e09f2a.jpg",
+        "877691df8.jpg",
+        "8b909bb20.jpg",
+        "a8d99130e.jpg",
+        "ad55c3143.jpg",
+        "c8260c541.jpg",
+        "d6c7f17c7.jpg",
+        "dc3e7c901.jpg",
+        "e44dffe88.jpg",
+        "ef87bad36.jpg",
+        "f083256d8.jpg",
+    ]
+
+    mask_not_corrupted = ~(df_csv["ImageId"].isin(exclude_list))
+
+    # decode masks
+    df_ship_pixel_masks = df_csv.loc[(mask_has_vessel & mask_not_corrupted)].copy()
+    df_ship_pixel_masks["pixel_mask"] = df_ship_pixel_masks["EncodedPixels"].apply(
+        rle_to_pixels
+    )
+
+    return df_ship_pixel_masks
