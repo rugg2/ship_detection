@@ -1,5 +1,5 @@
-# ship_detection
-Ship detection and localization from satellite images.
+# ship detection & localisation
+Ship detection and localisation from satellite images.
 
 **Blog posts:**
 - <a href='https://medium.com/@romain.guion/satellite-images-object-detection-part-1-95-accuracy-in-a-few-lines-of-code-8ee4acd72809'>Ship detection - Part 1</a>: Ship detection, i.e. binary prediction of whether there is at least 1 ship, or not. Part 1 is a simple solution showing great results in a few lines of code
