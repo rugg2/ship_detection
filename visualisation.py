@@ -50,6 +50,28 @@ def show_model_predictions(validation_generator, model):
             break
 
 
+def visualise_image_and_mask(df_ship_pixel_masks, img_nbr):
+    import matplotlib.pyplot as plt
+
+    image = plt.imread(
+        "../input/airbus-ship-detection/train_v2/"
+        + df_ship_pixel_masks["ImageId"].iloc[img_nbr]
+    )
+
+    fig = plt.figure(figsize=(16, 16))
+    fig.add_subplot(2, 2, 1)
+
+    plt.imshow(image)
+    fig.add_subplot(2, 2, 2)
+
+    decoded_mask = df_ship_pixel_masks["pixel_mask"].iloc[img_nbr]
+
+    canvas = np.zeros(image.shape[0:2])
+    canvas[tuple(zip(*decoded_mask))] = 1
+
+    plt.imshow(canvas)
+
+
 # ----------- exploratory data analysis -----------
 # images with multiple vessels have multiple rows
 # most images have no vessels - 77% in fact

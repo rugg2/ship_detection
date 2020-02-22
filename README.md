@@ -34,3 +34,4 @@ Steps taken:
     - https://medium.com/dataseries/detecting-ships-in-satellite-imagery-7f0ca04e7964
     - https://github.com/davidtvs/kaggle-airbus-ship-detection
     - https://towardsdatascience.com/deep-learning-for-ship-detection-and-segmentation-71d223aca649
+    - https://towardsdatascience.com/u-net-b229b32b4a71
