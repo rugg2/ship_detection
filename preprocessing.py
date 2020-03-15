@@ -117,6 +117,10 @@ def preprocessing_main(
 #  ------------------------ SHIP SEGMENTATION ------------------------
 # ---------------- preprocess both images and masks -----------------
 #  source for decoding and generators: https://www.kaggle.com/kmader/baseline-u-net-model-part-1
+# TODO: parameters to pass as argument
+TRAIN_IMAGE_DIR = "../input/airbus-ship-detection/train_v2/"
+# smaller images train faster and consume less memory
+IMG_SCALING = (0.5, 0.5)
 
 
 def rle_decode(mask_rle, shape=(768, 768)):
@@ -151,9 +155,6 @@ def masks_as_image(in_mask_list):
         if isinstance(mask, str):
             all_masks += rle_decode(mask)
     return np.expand_dims(all_masks, -1)
-
-
-TRAIN_IMAGE_DIR = "../input/airbus-ship-detection/train_v2/"
 
 
 def make_image_gen(in_df, batch_size=20):
