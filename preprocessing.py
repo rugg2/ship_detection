@@ -116,6 +116,9 @@ def preprocessing_main(
 
 #  ------------------------ SHIP SEGMENTATION ------------------------
 # ---------------- preprocess both images and masks -----------------
+#  source for decoding and generators: https://www.kaggle.com/kmader/baseline-u-net-model-part-1
+
+
 def rle_decode(mask_rle, shape=(768, 768)):
     """
     Masks of training set are encoded in a format called RLE (Run Length Encoding)
