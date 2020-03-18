@@ -18,6 +18,7 @@ Steps taken:
         - to download locally, make sure your connection is stable (29 GB)
             - get API key through your kaggle profile (free), and either save file or enter name and key as environmental variable
             - nohup kaggle competitions download -c airbus-ship-detection & disown %1
+    - other data providers: Airbus, Digital Globe
     - free sources (unverified quality or recency):
         https://eos.com/blog/7-top-free-satellite-imagery-sources-in-2019/
 - **simple EDA:**
