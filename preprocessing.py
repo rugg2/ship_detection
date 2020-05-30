@@ -4,10 +4,15 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
+import matplotlib.pyplot as plt
+from skimage.util import montage
+import os
+from keras.preprocessing.image import ImageDataGenerator
+
 
 def process_text_df(metadata_filepath):
     """
-    Extract labels from metadata csv file 
+    Extract labels from metadata csv file
     """
     # load
     df_csv = pd.read_csv(metadata_filepath)
@@ -43,7 +48,13 @@ def process_text_df(metadata_filepath):
         mask_not_corrupted, ["has_vessel", "has_vessel_str", "ImageId"]
     ].drop_duplicates()
 
-    return df_ship_noship
+    df_with_ship = df_csv.loc[(mask_not_corrupted & df_csv["has_vessel"])]
+
+    return df_ship_noship, df_with_ship
+
+
+#  ------------------------ SHIP DETECTION ------------------------
+# ---------- image preprocessing for the ship detection task ----------
 
 
 def image_batch_generators(
@@ -87,9 +98,10 @@ def preprocessing_main(
 ):
     """
     Call the other subroutines in this file.
-    --> likely targetted to vessel detection, not directly usable for localization (tbc)
+    --> only for vessel detection, not directly usable for localization
+    TODO: update method name to reflect that
     """
-    df_metadata = process_text_df(
+    df_metadata, _ = process_text_df(
         metadata_filepath=input_dir + "/train_ship_segmentations_v2.csv"
     )
 
@@ -102,72 +114,20 @@ def preprocessing_main(
     return train_generator, validation_generator
 
 
-# where is ship on image
-# TODO: add when working on the localisation part of the project
-# def rle_to_pixels(rle_code):
-#     """
-#     RLE: Run-Length Encoding
-#     Decode box position
-#     Transforms a RLE code string into a list of pixels of a (768, 768) canvas.
-
-#     Source: https://www.kaggle.com/julian3833/2-understanding-and-plotting-rle-bounding-boxes
-#     """
-#     rle_code = [int(i) for i in rle_code.split()]
-#     pixels = [
-#         (pixel_position % 768, pixel_position // 768)
-#         for start, length in list(zip(rle_code[0:-1:2], rle_code[1::2]))
-#         for pixel_position in range(start, start + length)
-#     ]
-#     return pixels
-
-# def select_images_with_vessels_and_generate_pixels_mask(metadata_filepath):
-#     """
-#     This method associates images with pixel masks of where the ship is.
-
-#     Context: this prepares the second part of training:
-#     assuming there is a vessel on the image, and predicting where the vessel is.
-#     """
-
-#     # load
-#     df_csv = pd.read_csv(metadata_filepath)
-
-#     # limit to images with vessels
-#     mask_has_vessel = df_csv["EncodedPixels"].notnull()
-
-#     # remove corrupted images. Source: https://www.kaggle.com/iafoss/fine-tuning-resnet34-on-ship-detection
-#     exclude_list = [
-#         "6384c3e78.jpg",
-#         "13703f040.jpg",
-#         "14715c06d.jpg",
-#         "33e0ff2d5.jpg",
-#         "4d4e09f2a.jpg",
-#         "877691df8.jpg",
-#         "8b909bb20.jpg",
-#         "a8d99130e.jpg",
-#         "ad55c3143.jpg",
-#         "c8260c541.jpg",
-#         "d6c7f17c7.jpg",
-#         "dc3e7c901.jpg",
-#         "e44dffe88.jpg",
-#         "ef87bad36.jpg",
-#         "f083256d8.jpg",
-#     ]
-
-#     mask_not_corrupted = ~(df_csv["ImageId"].isin(exclude_list))
-
-#     # decode masks
-#     df_ship_pixel_masks = df_csv.loc[(mask_has_vessel & mask_not_corrupted)].copy()
-#     df_ship_pixel_masks["pixel_mask"] = df_ship_pixel_masks["EncodedPixels"].apply(
-#         rle_to_pixels
-#     )
-
-#     return df_ship_pixel_masks
+#  ------------------------ SHIP SEGMENTATION ------------------------
+# ---------------- preprocess both images and masks -----------------
+#  source for decoding and generators: https://www.kaggle.com/kmader/baseline-u-net-model-part-1
+# TODO: parameters to pass as argument
+TRAIN_IMAGE_DIR = "../input/airbus-ship-detection/train_v2/"
+# smaller images train faster and consume less memory
+IMG_SCALING = (0.5, 0.5)
 
 
 def rle_decode(mask_rle, shape=(768, 768)):
     """
+    Masks of training set are encoded in a format called RLE (Run Length Encoding)
     mask_rle: run-length as string formated (start length)
-    shape: (height,width) of array to return 
+    shape: (height,width) of array to return
     Returns numpy array, 1 - mask, 0 - background
 
     """
@@ -186,7 +146,9 @@ def rle_decode(mask_rle, shape=(768, 768)):
 
 
 def masks_as_image(in_mask_list):
-    # Take the individual ship masks and create a single mask array for all ships
+    """
+    Take the individual ship masks and create a single mask array for all ships
+    """
     all_masks = np.zeros((768, 768), dtype=np.int16)
 
     for mask in in_mask_list:
@@ -195,10 +157,10 @@ def masks_as_image(in_mask_list):
     return np.expand_dims(all_masks, -1)
 
 
-TRAIN_IMAGE_DIR = "../input/airbus-ship-detection/train_v2/"
-
-
 def make_image_gen(in_df, batch_size=20):
+    """
+    Generators loading both images and masks, as well as performing rescaling
+    """
     all_batches = list(in_df.groupby("ImageId"))
     out_rgb = []
     out_mask = []
@@ -206,7 +168,7 @@ def make_image_gen(in_df, batch_size=20):
         np.random.shuffle(all_batches)
         for c_img_id, c_masks in all_batches:
             rgb_path = os.path.join(TRAIN_IMAGE_DIR, c_img_id)
-            c_img = imread(rgb_path)
+            c_img = plt.imread(rgb_path)
             c_mask = masks_as_image(c_masks["EncodedPixels"].values)
             if IMG_SCALING is not None:
                 c_img = c_img[:: IMG_SCALING[0], :: IMG_SCALING[1]]
@@ -218,11 +180,7 @@ def make_image_gen(in_df, batch_size=20):
                 out_rgb, out_mask = [], []
 
 
-# use methods used in https://www.kaggle.com/kmader/baseline-u-net-model-part-1
-
-# Augment Data
-from keras.preprocessing.image import ImageDataGenerator
-
+# AUGMENT DATA: apply a range of distortions
 dg_args = dict(
     featurewise_center=False,
     samplewise_center=False,
@@ -236,18 +194,20 @@ dg_args = dict(
     fill_mode="reflect",
     data_format="channels_last",
 )
-# brightness can be problematic since it seems to change the labels differently from the images
-# if AUGMENT_BRIGHTNESS:
-#     dg_args[' brightness_range'] = [0.5, 1.5]
-image_gen = ImageDataGenerator(**dg_args)
 
-# if AUGMENT_BRIGHTNESS:
-#     dg_args.pop('brightness_range')
+image_gen = ImageDataGenerator(**dg_args)
 label_gen = ImageDataGenerator(**dg_args)
 
-training_image_and_label_gen = MergedGenerators(image_gen, label_gen)
 
 def create_aug_gen(in_gen, seed=None):
+    """
+    Data augmentation on image and mask/label, from image and mask generators
+
+    Caution: the synchronisation of seeds for image and mask is fragile,
+    and does not seem very thread safe, so use only 1 worker.
+
+    TODO: for multithreading, look at keras.utils.Sequence, and the class MergedGenerators
+    """
     np.random.seed(seed if seed is not None else np.random.choice(range(9999)))
     for in_x, in_y in in_gen:
         seed = np.random.choice(range(9999))
@@ -260,60 +220,47 @@ def create_aug_gen(in_gen, seed=None):
         yield next(g_x) / 255.0, next(g_y)
 
 
-train_gen = make_image_gen(balanced_train_df)
-cur_gen = create_aug_gen(train_gen)
-t_x, t_y = next(cur_gen)
-print("x", t_x.shape, t_x.dtype, t_x.min(), t_x.max())
-print("y", t_y.shape, t_y.dtype, t_y.min(), t_y.max())
-# only keep first 9 samples to examine in detail
-t_x = t_x[:9]
-t_y = t_y[:9]
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-ax1.imshow(montage_rgb(t_x), cmap="gray")
-ax1.set_title("images")
-ax2.imshow(montage(t_y[:, :, :, 0]), cmap="gray_r")
-ax2.set_title("ships")
-
-from keras.utils import Sequence
+montage_rgb = lambda x: np.stack(
+    [montage(x[:, :, :, i]) for i in range(x.shape[3])], -1
+)
 
 
-class MergedGenerators(Sequence):
-    def __init__(self, *generators):
-        self.generators = generators
-        # TODO add a check to verify that all generators have the same length
+def preprocessing_segmentation_main(input_dir="../../datasets/satellite_ships"):
+    # to be parametrised
+    # TRAIN_IMAGE_DIR
+    # VALID_IMG_COUNT
 
-    def __len__(self):
-        return len(self.generators[0])
+    #  load metadata from csv
+    _, df_with_ship = process_text_df(
+        metadata_filepath=input_dir + "/train_ship_segmentations_v2.csv"
+    )
 
-    def __getitem__(self, index):
-        return [generator[index] for generator in self.generators]
+    df_images_with_ship_train, df_images_with_ship_dev = train_test_split(
+        df_images_with_ship, test_size=0.2
+    )
 
+    # generator fetching raw images and masks
+    train_gen = make_image_gen(df_images_with_ship_train)
 
-# def augmentationForTrainImageAndMask(imgs, masks):
-#     data_gen_args = dict(
-#         rotation_range=40.0,
-#         width_shift_range=0.1,
-#         height_shift_range=0.1,
-#         zoom_range=0.2,
-#         horizontal_flip=True,
-#         fill_mode="nearest",
-#     )
-#     image_datagen = ImageDataGenerator(**data_gen_args)
-#     mask_datagen = ImageDataGenerator(**data_gen_args)
+    # generator augmenting / distorting both images and masks
+    cur_gen = create_aug_gen(train_gen)
 
-#     seed = 1
-#     image_datagen.fit(imgs, augment=True, seed=seed)
-#     mask_datagen.fit(masks, augment=True, seed=seed)
+    # a fixed dev / validation batch
+    VALID_IMG_COUNT = 400
+    valid_gen = make_image_gen(df_images_with_ship_dev, VALID_IMG_COUNT)
+    # valid_x, valid_y = next(valid_gen)
 
-#     image_generator = image_datagen.flow(
-#         imgs, seed=seed, batch_size=batch_size, shuffle=False
-#     )
+    # # plots
+    # t_x, t_y = next(cur_gen)
+    # print('x', t_x.shape, t_x.dtype, t_x.min(), t_x.max())
+    # print('y', t_y.shape, t_y.dtype, t_y.min(), t_y.max())
+    # # only keep first 9 samples to examine in detail
+    # t_x = t_x[:2]
+    # t_y = t_y[:2]
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (30, 15))
+    # ax1.imshow(montage_rgb(t_x), cmap='gray')
+    # ax1.set_title('images')
+    # ax2.imshow(montage(t_y[:, :, :, 0]), cmap='gray_r')
+    # ax2.set_title('ships')
 
-#     mask_generator = mask_datagen.flow(
-#         masks, seed=seed, batch_size=batch_size, shuffle=False
-#     )
-
-#     # return zip(image_generator, mask_generator)
-
-#     return MergedGenerators(image_generator, mask_generator)
-
+    return cur_gen, valid_gen

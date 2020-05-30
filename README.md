@@ -9,8 +9,8 @@ Ship detection and localisation from satellite images.
 <img src="https://rugg2.github.io/project_files/deepneuralnetworks_image/class_activation_mapping.PNG" alt="Class activation mapping on vessel detection classifier ConvNet" height="475">
 
 Steps taken:
-- **find data sets:** 
-    - planet API: 
+- **find data sets:**
+    - planet API:
         - needs subscription, but there is a free trial
         - Example usage here: https://medium.com/dataseries/satellite-imagery-analysis-with-python-a06eea5465ea
     - airbus kaggle set (selected for first iteration)
@@ -18,7 +18,8 @@ Steps taken:
         - to download locally, make sure your connection is stable (29 GB)
             - get API key through your kaggle profile (free), and either save file or enter name and key as environmental variable
             - nohup kaggle competitions download -c airbus-ship-detection & disown %1
-    - free sources (unverified quality or recency): 
+    - other data providers: Airbus, Digital Globe
+    - free sources (unverified quality or recency):
         https://eos.com/blog/7-top-free-satellite-imagery-sources-in-2019/
 - **simple EDA:**
     - 200k+ images of size 768 x 768 x 3
@@ -36,3 +37,4 @@ Steps taken:
     - https://towardsdatascience.com/deep-learning-for-ship-detection-and-segmentation-71d223aca649
     - https://towardsdatascience.com/u-net-b229b32b4a71
     - https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/
+    - more classic ship detection algorithms in skimage.segmentation: https://developers.planet.com/tutorials/detect-ships-in-planet-data/
