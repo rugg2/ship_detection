@@ -35,3 +35,4 @@ Steps taken:
     - https://github.com/davidtvs/kaggle-airbus-ship-detection
     - https://towardsdatascience.com/deep-learning-for-ship-detection-and-segmentation-71d223aca649
     - https://towardsdatascience.com/u-net-b229b32b4a71
+    - https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/
