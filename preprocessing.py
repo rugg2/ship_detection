@@ -1,18 +1,24 @@
-import numpy as np
-import pandas as pd
-
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
+import os
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 from skimage.util import montage
-import os
+from sklearn.model_selection import train_test_split
+
 from keras.preprocessing.image import ImageDataGenerator
 
 
 def process_text_df(metadata_filepath):
     """
-    Extract labels from metadata csv file
+    Extract labels from metadata csv file.
+
+    Output:
+    - dataframe of image file names and boolean of whether there is >= 1 ship or not
+    (deduplicated on image file names)
+    - dataframe of image file names filtered to those with >= 1 ship 
+    (multiple references to the same image if multiple ships)
     """
     # load
     df_csv = pd.read_csv(metadata_filepath)
@@ -48,7 +54,7 @@ def process_text_df(metadata_filepath):
         mask_not_corrupted, ["has_vessel", "has_vessel_str", "ImageId"]
     ].drop_duplicates()
 
-    df_with_ship = df_csv.loc[(mask_not_corrupted & df_csv["has_vessel"])]
+    df_with_ship = df_csv.loc[mask_not_corrupted & df_csv["has_vessel"]]
 
     return df_ship_noship, df_with_ship
 
@@ -236,7 +242,7 @@ def preprocessing_segmentation_main(input_dir="../../datasets/satellite_ships"):
     )
 
     df_images_with_ship_train, df_images_with_ship_dev = train_test_split(
-        df_images_with_ship, test_size=0.2
+        df_with_ship, test_size=0.2
     )
 
     # generator fetching raw images and masks
