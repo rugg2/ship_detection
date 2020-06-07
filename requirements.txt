@@ -4,3 +4,4 @@ seaborn==0.10.0
 matplotlib==3.2.0
 tensorflow==2.1.0
 black==19.10b0
+sklearn==0.22.1
