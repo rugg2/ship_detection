@@ -72,6 +72,9 @@ def unet_model(encoder, unet_input_shape=None, output_channels=2):
 
     x = last(x)
 
+    # apply sigmoid activation to get result between 0 and 1
+    x = tf.keras.layers.Conv2D(1, (1, 1), activation="sigmoid")(x)
+
     return tf.keras.Model(inputs=inputs, outputs=x)
 
 
@@ -93,12 +96,14 @@ def true_positive_rate(y_true, y_pred):
 
 
 # --------- script: TODO this bit still to be refactored + define main ---------
-def training_main(cur_gen, valid_gen):
+def training_main_from_encoder(
+    cur_gen,
+    valid_gen,
+    pretrained_encoder_path="../input/vessel-detection-transferlearning-xception/model_xception_gmp_cycling_20200112_7_40.h5",
+):
     # load encoder
     # step 1: load pretrained encoder
-    encoder_and_classifier = tf.keras.models.load_model(
-        "../input/vessel-detection-transferlearning-xception/model_xception_gmp_cycling_20200112_7_40.h5"
-    )
+    encoder_and_classifier = tf.keras.models.load_model(pretrained_encoder_path)
 
     encoder = encoder_and_classifier.get_layer("xception")
 
@@ -150,3 +155,34 @@ def training_main(cur_gen, valid_gen):
             workers=1,  # the generator is not very thread safe
         )
     ]
+
+    return unet
+
+
+# TODO: refactor / create main / parametrise
+def training_main_from_pretrained_unet(
+    cur_gen,
+    valid_gen,
+    pretrained_unet_path="../input/ship-segmentation-with-u-net-pretrained-encoder/xception_unet_5ep.h5",
+):
+    unet_reload = tf.keras.models.load_model(
+        pretrained_unet_path,
+        custom_objects={"dice_p_bce": dice_p_bce, "dice_coef": dice_coef},
+    )
+
+    valid_x, valid_y = next(valid_gen)
+
+    loss_history = [
+        unet_reload.fit_generator(
+            cur_gen,
+            steps_per_epoch=50,
+            initial_epoch=5,
+            epochs=6,
+            validation_data=(valid_x, valid_y),
+            validation_steps=1,
+            #                              callbacks=callbacks_list,
+            workers=1,  # the generator is not very thread safe
+        )
+    ]
+
+    unet_reload.save("xception_unet_epoch6.h5")
