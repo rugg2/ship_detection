@@ -47,7 +47,7 @@ def define_up_and_down_stacks(encoder):
     return down_stack, up_stack
 
 
-def unet_model(encoder, unet_input_shape=None, output_channels=2):
+def unet_model(encoder, unet_input_shape=None, output_channels=1):
     inputs = tf.keras.layers.Input(shape=[unet_input_shape, unet_input_shape, 3])
     x = inputs
 
@@ -108,7 +108,7 @@ def training_main_from_encoder(
     encoder = encoder_and_classifier.get_layer("xception")
 
     # generate unet
-    unet = unet_model(encoder, unet_input_shape=None, output_channels=2)
+    unet = unet_model(encoder, unet_input_shape=None, output_channels=1)
 
     # visualise unet
     tf.keras.utils.plot_model(unet, show_shapes=True)
@@ -117,11 +117,7 @@ def training_main_from_encoder(
     unet.compile(
         optimizer=tf.keras.optimizers.Adam(1e-4, decay=1e-6),
         loss=dice_p_bce,
-        metrics=[
-            dice_coef,
-            "binary_accuracy",
-            #                       true_positive_rate
-        ],
+        metrics=[dice_coef, "binary_accuracy", true_positive_rate],
     )
 
     # call backs
@@ -139,18 +135,14 @@ def training_main_from_encoder(
     #                       patience=15) # probably needs to be more patient, but kaggle time is limited
     # callbacks_list = [checkpoint, early, reduceLROnPlat]
 
-    # get a fixed validation batch (not a must, just a choice here)
-    # TODO: get cur_gen and valid_gen from preprocessing
-    valid_x, valid_y = next(valid_gen)
-
     # training
     loss_history = [
         unet.fit_generator(
             cur_gen,
-            steps_per_epoch=10,
-            epochs=5,
-            validation_data=(valid_x, valid_y),
-            validation_steps=1,
+            steps_per_epoch=100,
+            epochs=10,
+            validation_data=valid_gen,
+            validation_steps=10,
             # callbacks=callbacks_list,
             workers=1,  # the generator is not very thread safe
         )
@@ -167,7 +159,11 @@ def training_main_from_pretrained_unet(
 ):
     unet_reload = tf.keras.models.load_model(
         pretrained_unet_path,
-        custom_objects={"dice_p_bce": dice_p_bce, "dice_coef": dice_coef},
+        custom_objects={
+            "dice_p_bce": dice_p_bce,
+            "dice_coef": dice_coef,
+            "true_positive_rate": true_positive_rate,
+        },
     )
 
     valid_x, valid_y = next(valid_gen)
@@ -175,11 +171,11 @@ def training_main_from_pretrained_unet(
     loss_history = [
         unet_reload.fit_generator(
             cur_gen,
-            steps_per_epoch=50,
-            initial_epoch=5,
-            epochs=6,
-            validation_data=(valid_x, valid_y),
-            validation_steps=1,
+            steps_per_epoch=100,
+            initial_epoch=10,
+            epochs=20,
+            validation_data=valid_gen,
+            validation_steps=10,
             #                              callbacks=callbacks_list,
             workers=1,  # the generator is not very thread safe
         )
