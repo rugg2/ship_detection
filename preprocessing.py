@@ -265,7 +265,7 @@ def preprocessing_segmentation_main(
     cur_gen = create_aug_gen(train_gen)
 
     # a fixed dev / validation batch
-    VALID_IMG_COUNT = 400
+    VALID_IMG_COUNT = 20
     valid_gen = make_image_gen(df_images_with_ship_dev, VALID_IMG_COUNT)
     # valid_x, valid_y = next(valid_gen)
 
