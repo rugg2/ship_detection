@@ -180,10 +180,10 @@ def make_image_gen(
     out_mask = []
     while True:
         np.random.shuffle(all_batches)
-        for c_img_id, c_masks in all_batches:
+        for c_img_id, c_rows_with_vessel_masks in all_batches:
             rgb_path = os.path.join(TRAIN_IMAGE_DIR, c_img_id)
             c_img = plt.imread(rgb_path)
-            c_mask = masks_as_image(c_masks["EncodedPixels"].values)
+            c_mask = masks_as_image(c_rows_with_vessel_masks["EncodedPixels"].values)
             if IMG_SCALING is not None:
                 c_img = c_img[:: IMG_SCALING[0], :: IMG_SCALING[1]]
                 c_mask = c_mask[:: IMG_SCALING[0], :: IMG_SCALING[1]]
@@ -234,9 +234,20 @@ def create_aug_gen(in_gen, seed=None):
         yield next(g_x) / 255.0, next(g_y)
 
 
-montage_rgb = lambda x: np.stack(
-    [montage(x[:, :, :, i]) for i in range(x.shape[3])], -1
-)
+def split_on_unique_id(df, id_col, test_size=0.1, random_state=42):
+    """
+    Split dataset into train and dev set, being careful not to split masks relative to the same image
+    """
+    train_ids, dev_ids = train_test_split(
+        df[id_col].drop_duplicates().values,
+        test_size=test_size,
+        random_state=random_state,
+    )
+
+    train_df, test_df = [
+        df.loc[df[id_col].isin(subset_ids)] for subset_ids in [train_ids, dev_ids]
+    ]
+    return train_df, test_df
 
 
 def preprocessing_segmentation_main(
@@ -252,22 +263,28 @@ def preprocessing_segmentation_main(
         metadata_filepath=input_dir + "/train_ship_segmentations_v2.csv"
     )
 
-    df_images_with_ship_train, df_images_with_ship_dev = train_test_split(
-        df_with_ship, test_size=0.2
+    # split dataset into train and dev set, being careful not to split masks relative to the same image
+    df_images_with_ship_train, df_images_with_ship_dev = split_on_unique_id(
+        df=df_with_ship, id_col="ImageId", test_size=0.1, random_state=42
     )
 
     # generator fetching raw images and masks
     train_gen = make_image_gen(
-        df_images_with_ship_train, TRAIN_IMAGE_DIR=TRAIN_IMAGE_DIR
+        in_df=df_images_with_ship_train, TRAIN_IMAGE_DIR=TRAIN_IMAGE_DIR
     )
 
     # generator augmenting / distorting both images and masks
     cur_gen = create_aug_gen(train_gen)
 
     # a fixed dev / validation batch
-    VALID_IMG_COUNT = 20
-    valid_gen = make_image_gen(df_images_with_ship_dev, VALID_IMG_COUNT)
+    valid_gen = make_image_gen(
+        in_df=df_images_with_ship_dev, TRAIN_IMAGE_DIR=TRAIN_IMAGE_DIR
+    )
     # valid_x, valid_y = next(valid_gen)
+
+    # montage_rgb = lambda x: np.stack(
+    #     [montage(x[:, :, :, i]) for i in range(x.shape[3])], -1
+    # )
 
     # # plots
     # t_x, t_y = next(cur_gen)
