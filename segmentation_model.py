@@ -79,10 +79,19 @@ def unet_model(encoder, unet_input_shape=None, output_channels=1):
 
 
 # ----------- metrics and loss -----------
-def dice_coef(y_true, y_pred, smooth=1):
+def IoU(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[1, 2, 3])
-    union = K.sum(y_true, axis=[1, 2, 3]) + K.sum(y_pred, axis=[1, 2, 3])
-    return K.mean((2.0 * intersection + smooth) / (union + smooth), axis=0)
+    union = K.sum(y_true, axis=[1, 2, 3]) + K.sum(y_pred, axis=[1, 2, 3]) - intersection
+    return intersection / union
+
+
+def dice_coef(y_true, y_pred, smooth=1):
+    """
+    https://radiopaedia.org/articles/dice-similarity-coefficient
+    """
+    intersection = K.sum(y_true * y_pred, axis=[1, 2, 3])
+    sum_of_cardinals = K.sum(y_true, axis=[1, 2, 3]) + K.sum(y_pred, axis=[1, 2, 3])
+    return K.mean((2.0 * intersection + smooth) / (sum_of_cardinals + smooth), axis=0)
 
 
 def dice_p_bce(in_gt, in_pred):
@@ -117,7 +126,7 @@ def training_main_from_encoder(
     unet.compile(
         optimizer=tf.keras.optimizers.Adam(1e-4, decay=1e-6),
         loss=dice_p_bce,
-        metrics=[dice_coef, "binary_accuracy", true_positive_rate],
+        metrics=[dice_coef, "binary_accuracy", true_positive_rate, IoU],
     )
 
     # call backs
