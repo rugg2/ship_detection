@@ -36,5 +36,6 @@ Steps taken:
     - https://github.com/davidtvs/kaggle-airbus-ship-detection
     - https://towardsdatascience.com/deep-learning-for-ship-detection-and-segmentation-71d223aca649
     - https://towardsdatascience.com/u-net-b229b32b4a71
+    - https://www.tensorflow.org/tutorials/images/segmentation
     - https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/
     - more classic ship detection algorithms in skimage.segmentation: https://developers.planet.com/tutorials/detect-ships-in-planet-data/
