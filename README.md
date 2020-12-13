@@ -7,6 +7,7 @@ Ship detection and localisation from satellite images.
 - <a href='https://medium.com/vortechsa/satellite-image-segmentation-part-3-eeb134fe3dd5'>Ship localisation / image segmentation - Part 3</a>: identify where ship are within the image, and highlight pixel by pixel
 
 Part 3 highlight: Image segmentation with a U-Net
+
 <img src="https://rugg2.github.io/project_files/deepneuralnetworks_image/ship_localisation_example.png" alt="Image segmentation with a U-Net" height="300">
 
 Part 2 highlight: Class activation mapping on vessel detection classifier ConvNet - convnet learned where ships are without supervision!
