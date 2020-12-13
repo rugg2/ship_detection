@@ -19,7 +19,7 @@ Steps taken:
             - get API key through your kaggle profile (free), and either save file or enter name and key as environmental variable
             - nohup kaggle competitions download -c airbus-ship-detection & disown %1
     - other data providers: Airbus, Digital Globe
-    - free sources (unverified quality or recency):
+    - free sources: includes EOS's Sentinel 1 (SAR - active/radar) and 2 (optical)  with coverage period ranging of 2-7 days 
         https://eos.com/blog/7-top-free-satellite-imagery-sources-in-2019/
 - **simple EDA on data used in this repo and blog post:**
     - 200k+ images of size 768 x 768 x 3
