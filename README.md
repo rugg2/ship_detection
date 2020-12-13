@@ -32,7 +32,7 @@ Steps taken:
     - Ships within and across images differ in size, and are located in open sea, at docks, marinas, etc.
 - **modelling broken down into two steps**, with subfolders in the repo
     - ship detection: binary prediction of whether there is at least 1 ship, or not
-    - ship localisation: identify where ship are within the image, and highlight with a bounding box
+    - ship localisation / image segmentation: identify where ship are within the image, and classify each pixel as having a ship or no ship (alternative could be to have a bounding box, with a different kind of model)
 - **other articles on the topic:**
     - https://www.kaggle.com/iafoss/unet34-dice-0-87/data
     - https://www.kaggle.com/uysimty/ship-detection-using-keras-u-net
